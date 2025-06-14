@@ -14,13 +14,17 @@
 
   /*──────────── 3. TRACKER  ────────────*/
   function track(type) {
-    navigator.sendBeacon?.(
-      `${SUPA_URL}/rest/v1/ab_events`,
-      JSON.stringify({ test: TEST_KEY, variant, type }),
-      {headers:{apikey:SUPA_ANON, Authorization:`Bearer ${SUPA_ANON}`,
-                'Content-Type':'application/json',
-                Prefer:'return=minimal'}}
-    );
+    fetch(`${SUPA_URL}/rest/v1/ab_events`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPA_ANON,                          // your anon key
+        Authorization: `Bearer ${SUPA_ANON}`,       // same anon key
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ test: TEST_KEY, variant, type }),
+      keepalive: true                               // lets it fire on unload
+    }).catch(() => {});                             // ignore network hiccups
   }
 
   /*──────────── 4. LOAD VARIANT + IMPRESSION ────────────*/
