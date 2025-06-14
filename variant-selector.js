@@ -26,8 +26,8 @@
   /*──────────── 4. LOAD VARIANT + IMPRESSION ────────────*/
   const s = document.createElement('script');
   s.src = variant === 'A'
-          ? 'https://cdn.example.com/ab/hero-cta-A.js'
-          : 'https://cdn.example.com/ab/hero-cta-B.js';
+          ? 'https://cdn.jsdelivr.net/gh/ArchiusVuong-sudo/test-variant/hero-cta-A.js'
+          : 'https://cdn.jsdelivr.net/gh/ArchiusVuong-sudo/test-variant/hero-cta-B.js';
   s.defer = true;
   s.onload = () => track('impression');
   document.head.appendChild(s);
