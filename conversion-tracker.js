@@ -11,6 +11,7 @@
     const testKeyFromUrl = urlParams.get('ab_test');
     
     if (variantFromUrl && testKeyFromUrl) {
+      console.log('Conversion Tracker - Found variant from URL:', variantFromUrl, testKeyFromUrl);
       return { variant: variantFromUrl, test: testKeyFromUrl };
     }
     
@@ -19,14 +20,26 @@
     const variant = localStorage.getItem(testKey);
     
     if (variant) {
+      console.log('Conversion Tracker - Found variant from localStorage:', variant, testKey);
       return { variant, test: testKey };
     }
     
+    console.log('Conversion Tracker - No variant found');
     return null;
   }
 
   /*──────────── 3. TRACKER  ────────────*/
   function trackConversion(variant, testKey) {
+    const payload = { 
+      test: testKey, 
+      variant, 
+      type: 'conversion',
+      page_url: window.location.href,
+      referrer: "Khanh's test"
+    };
+    
+    console.log('Conversion Tracker - Sending conversion event:', payload);
+    
     fetch(`${SUPA_URL}/rest/v1/ab_events`, {
       method: 'POST',
       headers: {
@@ -35,15 +48,21 @@
         'Content-Type': 'application/json',
         Prefer: 'return=minimal'
       },
-      body: JSON.stringify({ 
-        test: testKey, 
-        variant, 
-        type: 'conversion',
-        page_url: window.location.href,
-        referrer: document.referrer
-      }),
+      body: JSON.stringify(payload),
       keepalive: true
-    }).catch(() => {});
+    })
+    .then(response => {
+      if (!response.ok) {
+        console.error('Conversion Tracker - Error response:', response.status, response.statusText);
+        return response.text().then(text => {
+          console.error('Conversion Tracker - Error details:', text);
+        });
+      }
+      console.log('Conversion Tracker - Conversion tracked successfully');
+    })
+    .catch(error => {
+      console.error('Conversion Tracker - Network error:', error);
+    });
   }
 
   /*──────────── 4. TRACK CONVERSION ON PAGE LOAD ────────────*/
@@ -64,6 +83,17 @@
   window.trackABConversion = function(customData = {}) {
     const variantInfo = getVariantInfo();
     if (variantInfo) {
+      const payload = { 
+        test: variantInfo.test, 
+        variant: variantInfo.variant, 
+        type: 'conversion',
+        page_url: window.location.href,
+        referrer: document.referrer,
+        ...customData
+      };
+      
+      console.log('Conversion Tracker - Manual conversion tracking:', payload);
+      
       fetch(`${SUPA_URL}/rest/v1/ab_events`, {
         method: 'POST',
         headers: {
@@ -72,16 +102,23 @@
           'Content-Type': 'application/json',
           Prefer: 'return=minimal'
         },
-        body: JSON.stringify({ 
-          test: variantInfo.test, 
-          variant: variantInfo.variant, 
-          type: 'conversion',
-          page_url: window.location.href,
-          referrer: document.referrer,
-          ...customData
-        }),
+        body: JSON.stringify(payload),
         keepalive: true
-      }).catch(() => {});
+      })
+      .then(response => {
+        if (!response.ok) {
+          console.error('Conversion Tracker - Manual tracking error:', response.status, response.statusText);
+          return response.text().then(text => {
+            console.error('Conversion Tracker - Manual tracking error details:', text);
+          });
+        }
+        console.log('Conversion Tracker - Manual conversion tracked successfully');
+      })
+      .catch(error => {
+        console.error('Conversion Tracker - Manual tracking network error:', error);
+      });
+    } else {
+      console.warn('Conversion Tracker - No variant info available for manual tracking');
     }
   };
 })(); 

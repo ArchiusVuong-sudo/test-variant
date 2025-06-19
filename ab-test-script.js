@@ -13,6 +13,10 @@
 
   /*──────────── 3. TRACKER  ────────────*/
   function track(type) {
+    const payload = { test: TEST_KEY, variant, type };
+    
+    console.log('A/B Test - Sending event:', payload);
+    
     fetch(`${SUPA_URL}/rest/v1/ab_events`, {
       method: 'POST',
       headers: {
@@ -21,9 +25,21 @@
         'Content-Type': 'application/json',
         Prefer: 'return=minimal'
       },
-      body: JSON.stringify({ test: TEST_KEY, variant, type }),
+      body: JSON.stringify(payload),
       keepalive: true
-    }).catch(() => {});
+    })
+    .then(response => {
+      if (!response.ok) {
+        console.error('A/B Test - Error response:', response.status, response.statusText);
+        return response.text().then(text => {
+          console.error('A/B Test - Error details:', text);
+        });
+      }
+      console.log('A/B Test - Event tracked successfully:', type);
+    })
+    .catch(error => {
+      console.error('A/B Test - Network error:', error);
+    });
   }
 
   /*──────────── 4. LOAD VARIANT + IMPRESSION ────────────*/
